@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#080b14" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>Tetris</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧱</text></svg>" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     BOOT — first paint, runs the init steps, then hands off to the menu
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--boot is-active" id="screen-boot" data-screen="boot">
+  <div class="boot">
+    <div class="boot__logo" aria-hidden="true">
+      <span style="--i:0"></span><span style="--i:1"></span>
+      <span style="--i:2"></span><span style="--i:3"></span>
+    </div>
+    <h1 class="boot__title">TETRIS</h1>
+    <p class="boot__sub">HTML · CSS · JavaScript</p>
+
+    <div class="boot__bar"><div class="boot__fill" id="boot-fill"></div></div>
+    <p class="boot__status" id="boot-status">Booting…</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN MENU
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--menu" id="screen-menu" data-screen="menu" hidden>
+  <div class="menu">
+    <header class="menu__head">
+      <div class="menu__logo" aria-hidden="true">
+        <span style="--i:0"></span><span style="--i:1"></span>
+        <span style="--i:2"></span><span style="--i:3"></span>
+      </div>
+      <h1 class="menu__title">TETRIS</h1>
+      <p class="menu__tag" id="menu-tag">Clear 40 lines to win.</p>
+    </header>
+
+    <nav class="menu__nav">
+      <button class="mbtn mbtn--primary" data-go="resume" id="btn-continue" hidden>
+        <span class="mbtn__icon">▶</span>
+        <span class="mbtn__label">Continue<em id="continue-info"></em></span>
+      </button>
+      <button class="mbtn mbtn--primary" data-go="new">
+        <span class="mbtn__icon">✦</span><span class="mbtn__label">New Game</span>
+      </button>
+      <button class="mbtn" data-go="help">
+        <span class="mbtn__icon">?</span><span class="mbtn__label">How to Play</span>
+      </button>
+      <button class="mbtn" data-go="scores">
+        <span class="mbtn__icon">★</span><span class="mbtn__label">High Scores</span>
+      </button>
+      <button class="mbtn" data-go="settings">
+        <span class="mbtn__icon">⚙</span><span class="mbtn__label">Settings</span>
+      </button>
+    </nav>
+
+    <footer class="menu__foot">
+      <span>Best</span><strong id="menu-best">0</strong>
+    </footer>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HOW TO PLAY
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--page" id="screen-help" data-screen="help" hidden>
+  <div class="page">
+    <header class="page__head">
+      <button class="back" data-go="menu" aria-label="Back to menu">‹</button>
+      <h2>How to Play</h2>
+    </header>
+
+    <div class="page__body">
+      <section class="card">
+        <h3>Goal</h3>
+        <p>
+          Pieces fall from the top. Fill a complete horizontal row and it clears,
+          dropping everything above it down. Clear
+          <b><span id="help-goal">40</span> lines</b> to win.
+          If a new piece can't fit at the top, the game is over.
+        </p>
+      </section>
+
+      <section class="card">
+        <h3>Keyboard</h3>
+        <dl class="kv">
+          <div><dt><kbd>←</kbd><kbd>→</kbd></dt><dd>Move (hold to repeat)</dd></div>
+          <div><dt><kbd>↓</kbd></dt><dd>Soft drop — 1 pt per cell</dd></div>
+          <div><dt><kbd>↑</kbd><kbd>X</kbd></dt><dd>Rotate clockwise</dd></div>
+          <div><dt><kbd>Z</kbd></dt><dd>Rotate counter-clockwise</dd></div>
+          <div><dt><kbd>Space</kbd></dt><dd>Hard drop — 2 pts per cell</dd></div>
+          <div><dt><kbd>C</kbd></dt><dd>Hold piece (once per piece)</dd></div>
+          <div><dt><kbd>P</kbd><kbd>Esc</kbd></dt><dd>Pause</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h3>Touch</h3>
+        <dl class="kv">
+          <div><dt>Drag ↔</dt><dd>Slide the piece with your thumb</dd></div>
+          <div><dt>Drag ↓</dt><dd>Soft drop</dd></div>
+          <div><dt>Flick ↓</dt><dd>Hard drop</dd></div>
+          <div><dt>Tap</dt><dd>Rotate clockwise</dd></div>
+        </dl>
+        <p class="note">The button pad under the board does the same, and holding
+          ‹ or › repeats.</p>
+      </section>
+
+      <section class="card">
+        <h3>Scoring</h3>
+        <table class="tbl">
+          <thead><tr><th>Clear</th><th>Name</th><th>Points</th></tr></thead>
+          <tbody>
+            <tr><td>1 line</td><td>Single</td><td>100 × level</td></tr>
+            <tr><td>2 lines</td><td>Double</td><td>300 × level</td></tr>
+            <tr><td>3 lines</td><td>Triple</td><td>500 × level</td></tr>
+            <tr><td>4 lines</td><td>Tetris</td><td>800 × level</td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Back-to-back Tetrises score ×1.5. Consecutive clears add a combo bonus
+          of 50 × combo × level. Four singles score 400; one Tetris scores 800 —
+          build the well and wait for the I.
+        </p>
+      </section>
+
+      <section class="card">
+        <h3>Tricks worth knowing</h3>
+        <ul class="bullets">
+          <li><b>Ghost piece</b> — the outline shows exactly where you'll land.</li>
+          <li><b>Hold</b> — park an awkward piece and take the next one instead.</li>
+          <li><b>Lock delay</b> — a landed piece gives you half a second to slide
+              or rotate it before it freezes.</li>
+          <li><b>Wall kicks</b> — rotation nudges the piece out of walls and
+              wells, so turns that look impossible often work.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HIGH SCORES
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--page" id="screen-scores" data-screen="scores" hidden>
+  <div class="page">
+    <header class="page__head">
+      <button class="back" data-go="menu" aria-label="Back to menu">‹</button>
+      <h2>High Scores</h2>
+    </header>
+
+    <div class="page__body">
+      <div class="best-hero">
+        <span class="best-hero__label">Personal best</span>
+        <strong class="best-hero__value" id="scores-best">0</strong>
+      </div>
+
+      <section class="card card--flush">
+        <table class="tbl tbl--scores">
+          <thead>
+            <tr><th>#</th><th>Score</th><th>Lines</th><th>Lvl</th><th>When</th></tr>
+          </thead>
+          <tbody id="scores-body"></tbody>
+        </table>
+        <p class="empty" id="scores-empty">No runs recorded yet. Play a game!</p>
+      </section>
+
+      <button class="mbtn mbtn--danger" id="btn-clear-scores">
+        <span class="mbtn__icon">✕</span><span class="mbtn__label">Clear all scores</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SETTINGS
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--page" id="screen-settings" data-screen="settings" hidden>
+  <div class="page">
+    <header class="page__head">
+      <button class="back" data-go="menu" aria-label="Back to menu">‹</button>
+      <h2>Settings</h2>
+    </header>
+
+    <div class="page__body">
+      <section class="card card--flush">
+        <label class="row" for="set-sound">
+          <span class="row__text">Sound<em>Synthesised effects, no audio files</em></span>
+          <input class="sw" type="checkbox" id="set-sound" data-set="sound" />
+        </label>
+        <label class="row" for="set-haptics">
+          <span class="row__text">Haptics<em>Vibration on drops and clears</em></span>
+          <input class="sw" type="checkbox" id="set-haptics" data-set="haptics" />
+        </label>
+        <label class="row" for="set-effects">
+          <span class="row__text">Visual effects<em>Particles, screen shake, trails</em></span>
+          <input class="sw" type="checkbox" id="set-effects" data-set="effects" />
+        </label>
+        <label class="row" for="set-ghost">
+          <span class="row__text">Ghost piece<em>Outline showing where you'll land</em></span>
+          <input class="sw" type="checkbox" id="set-ghost" data-set="ghost" />
+        </label>
+        <label class="row" for="set-countdown">
+          <span class="row__text">Countdown<em>"3 · 2 · 1" before play starts</em></span>
+          <input class="sw" type="checkbox" id="set-countdown" data-set="countdown" />
+        </label>
+      </section>
+
+      <section class="card">
+        <h3>Goal — lines to win</h3>
+        <div class="seg" role="group" aria-label="Lines to win">
+          <button class="seg__btn" data-goal="20">20</button>
+          <button class="seg__btn" data-goal="40">40</button>
+          <button class="seg__btn" data-goal="100">100</button>
+          <button class="seg__btn" data-goal="0">∞</button>
+        </div>
+        <p class="note">∞ is endless — play until you top out.</p>
+      </section>
+
+      <section class="card">
+        <h3>Starting level</h3>
+        <div class="seg" role="group" aria-label="Starting level">
+          <button class="seg__btn" data-level="1">1</button>
+          <button class="seg__btn" data-level="3">3</button>
+          <button class="seg__btn" data-level="5">5</button>
+          <button class="seg__btn" data-level="8">8</button>
+          <button class="seg__btn" data-level="10">10</button>
+        </div>
+        <p class="note">Higher levels start faster and score more per line.</p>
+      </section>
+
+      <button class="mbtn mbtn--danger" id="btn-reset-settings">
+        <span class="mbtn__icon">↺</span><span class="mbtn__label">Reset to defaults</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     GAME
+     ══════════════════════════════════════════════════════════════ -->
+<section class="screen screen--game" id="screen-game" data-screen="game" hidden>
+  <main class="game" aria-label="Tetris game">
+
+    <section class="panel panel--hold">
+      <h2 class="panel__title">Hold</h2>
+      <canvas id="hold" class="mini" aria-label="Held piece"></canvas>
+    </section>
+
+    <section class="panel panel--stats">
+      <h2 class="panel__title">Stats</h2>
+      <dl class="stats">
+        <div class="stat stat--score"><dt>Score</dt><dd id="score">0</dd></div>
+        <div class="stat"><dt>Best</dt><dd id="best">0</dd></div>
+        <div class="stat"><dt>Lines</dt><dd id="lines">0</dd></div>
+        <div class="stat"><dt>Level</dt><dd id="level">1</dd></div>
+      </dl>
+      <div class="goal" id="goal-wrap">
+        <div class="goal__label"><span>Goal</span><span id="goal-text">0 / 40</span></div>
+        <div class="goal__track"><div id="goal-bar" class="goal__fill"></div></div>
+      </div>
+    </section>
+
+    <section class="board-wrap" id="board-wrap">
+      <div class="board-frame" aria-hidden="true"></div>
+      <canvas id="board" class="board" aria-label="Play field"></canvas>
+
+      <div id="overlay" class="overlay" data-state="pause" hidden>
+        <div class="overlay__card">
+          <h2 id="overlay-title" class="overlay__title">PAUSED</h2>
+          <p id="overlay-msg" class="overlay__msg">Take your time.</p>
+          <div class="overlay__actions">
+            <button id="overlay-btn" class="btn" type="button">Resume</button>
+            <button id="overlay-btn2" class="btn btn--ghost" type="button">Main Menu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--next">
+      <h2 class="panel__title">Next</h2>
+      <canvas id="next" class="mini mini--tall" aria-label="Next pieces"></canvas>
+      <button id="pause" class="sound" type="button" aria-label="Pause game">
+        <span class="sound__icon">❚❚</span><span class="sound__text">Pause</span>
+      </button>
+    </section>
+
+    <nav class="pad" aria-label="Touch controls">
+      <button class="pad__btn" data-act="left"  aria-label="Move left">‹</button>
+      <button class="pad__btn" data-act="ccw"   aria-label="Rotate counter-clockwise">⟲</button>
+      <button class="pad__btn" data-act="cw"    aria-label="Rotate clockwise">⟳</button>
+      <button class="pad__btn" data-act="right" aria-label="Move right">›</button>
+      <button class="pad__btn pad__btn--alt" data-act="hold" aria-label="Hold piece">HOLD</button>
+      <button class="pad__btn pad__btn--alt" data-act="soft" aria-label="Soft drop">▾</button>
+      <button class="pad__btn pad__btn--drop" data-act="hard" aria-label="Hard drop">DROP</button>
+    </nav>
+  </main>
+</section>
+
+  <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+
+  <script src="script.js"></script>
+</body>
+</html>
