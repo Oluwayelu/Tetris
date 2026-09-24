@@ -1,6 +1,6 @@
-# Tetris — HTML, CSS & JavaScript
+# Tetris - HTML, CSS & JavaScript
 
-A complete Tetris game in three files — no build step, no dependencies, no
+A complete Tetris game in three files - no build step, no dependencies, no
 framework. Boot screen, main menu, how-to-play, settings, high-score table and
 the game itself. Open `index.html` and play.
 
@@ -20,7 +20,7 @@ tetris/
 | **Menu** | New Game, Continue (only when a run is saved), How to Play, High Scores, Settings, and your personal best. |
 | **How to Play** | Goal, keyboard map, touch gestures, the scoring table, and the four techniques worth knowing. |
 | **High Scores** | Top 10 runs with score, lines, level and date; wins get a badge. Clearable. |
-| **Settings** | Sound, haptics, visual effects, ghost piece, countdown, lines-to-win (20/40/100/∞) and starting level (1–10). |
+| **Settings** | Sound, haptics, visual effects, ghost piece, countdown, lines-to-win (20/40/100/∞) and starting level (1-10). |
 | **Game** | The board, HUD, hold/next previews and the control pad. |
 
 **Continue** is a real save: the grid, active piece, hold slot, bag, queue and
@@ -46,16 +46,16 @@ Then open <http://localhost:4321>.
 | Key | Action |
 | --- | --- |
 | `←` `→` | Move left / right (auto-repeats when held) |
-| `↓` | Soft drop — 1 point per cell |
+| `↓` | Soft drop - 1 point per cell |
 | `↑` or `X` | Rotate clockwise |
 | `Z` | Rotate counter-clockwise |
-| `Space` | Hard drop — 2 points per cell, locks instantly |
+| `Space` | Hard drop - 2 points per cell, locks instantly |
 | `C` | Hold / swap the current piece |
 | `P` or `Esc` | Pause |
 | `Enter` | Start / restart |
 
 `Esc` also backs out of any sub-page to the menu. Every effect is synthesised
-at runtime — there are no audio files — and sound can be turned off in Settings.
+at runtime - there are no audio files - and sound can be turned off in Settings.
 
 ### Touch
 
@@ -63,7 +63,7 @@ A button pad sits under the board, and the board itself is a gesture surface:
 
 | Gesture | Action |
 | --- | --- |
-| Drag left/right | Slide the piece — it tracks your thumb cell for cell |
+| Drag left/right | Slide the piece - it tracks your thumb cell for cell |
 | Drag down | Soft drop, one row per cell of travel |
 | Flick down | Hard drop |
 | Tap | Rotate clockwise |
@@ -73,15 +73,15 @@ tapping four times. Supported devices get haptic feedback on drops and clears.
 
 ## Rules as implemented
 
-- **Win** — clear the goal number of lines (**40** by default). Classic Tetris
+- **Win** - clear the goal number of lines (**40** by default). Classic Tetris
   has no win state, so this is an explicit goal, a "40-line sprint". Settings
   offers 20 / 40 / 100 / ∞; the progress bar follows automatically, and ∞ hides
   it and never wins.
-- **Lose** — *block out* (a new piece cannot fit at its spawn position) or
+- **Lose** - *block out* (a new piece cannot fit at its spawn position) or
   *lock out* (a piece comes to rest entirely inside the two hidden rows).
-- **High scores** — the top 10 runs live in `localStorage`, so they survive
+- **High scores** - the top 10 runs live in `localStorage`, so they survive
   reloads. Every read and write goes through a `try/catch` wrapper because
-  storage throws in some private-browsing modes — the game stays fully playable
+  storage throws in some private-browsing modes - the game stays fully playable
   with storage disabled, it just forgets.
 
 ### Storage keys
@@ -108,7 +108,7 @@ Each cell is either `null` (empty) or a piece letter (`'T'`, `'I'`, …) that
 doubles as a colour lookup. Storing the letter rather than a boolean means the
 renderer knows what colour to paint a settled block without a second array.
 
-`x` grows right, `y` grows **down** — same as canvas coordinates, which removes
+`x` grows right, `y` grows **down** - same as canvas coordinates, which removes
 a whole class of sign-flip bugs.
 
 The top **two rows are hidden**. Pieces spawn there and overflow into them, and
@@ -166,7 +166,7 @@ Every mechanic is expressed as *"would this placement collide?"*:
 | Game over | `collides()` at the spawn position |
 
 Because it is a pure predicate over `(matrix, x, y)`, you can *test* a move
-before committing to it — the thing that makes rotation with wall kicks
+before committing to it - the thing that makes rotation with wall kicks
 tractable at all.
 
 ## 4. Rotation with SRS wall kicks
@@ -181,7 +181,7 @@ const kicks = table[`${fromRotation}${toRotation}`];   // e.g. "01"
 for (const [dx, dy] of kicks) {
   if (!collides(rotated, p.x + dx, p.y + dy)) { commit(dx, dy); return true; }
 }
-return false;   // genuinely no room — refuse the rotation
+return false;   // genuinely no room - refuse the rotation
 ```
 
 Two kick tables exist: one for J/L/S/T/Z, one for I (its rotation centre is
@@ -189,7 +189,7 @@ offset). O never rotates visibly, so it's skipped entirely.
 
 Published SRS tables use **y-up** coordinates. The tables in `script.js` have
 already been negated to y-down. If you copy fresh tables from a reference, you
-must flip the sign of every `dy` — otherwise kicks push pieces the wrong way and
+must flip the sign of every `dy` - otherwise kicks push pieces the wrong way and
 you'll chase the bug for an hour.
 
 ## 5. Randomness: the 7-bag
@@ -200,7 +200,7 @@ deal them out, reshuffle. You never wait more than 12 pieces for any given one.
 
 ```js
 function nextType() {
-  if (bag.length === 0) bag = shuffle(TYPES.slice());   // Fisher–Yates
+  if (bag.length === 0) bag = shuffle(TYPES.slice());   // Fisher-Yates
   return bag.pop();
 }
 ```
@@ -231,11 +231,11 @@ if (dropTimer >= GRAVITY[level]) { dropTimer -= GRAVITY[level]; move(0, 1); }
 ```
 
 `GRAVITY` is a lookup table in milliseconds per row, from 1000 ms at level 1 to
-12 ms at level 15 — the classic curve, converted from frames-at-60fps.
+12 ms at level 15 - the classic curve, converted from frames-at-60fps.
 
 **Lock delay** is what separates a game that feels good from one that doesn't. A
 piece touching the stack does not freeze immediately; it gets 500 ms, and any
-successful move or rotation resets that timer — up to 15 resets, so you can't
+successful move or rotation resets that timer - up to 15 resets, so you can't
 stall forever. Without this, fast levels are unplayable; without the reset cap,
 you can hover indefinitely.
 
@@ -261,7 +261,7 @@ for (const y of clearRows) {
 ```
 
 A short `'clearing'` phase (180 ms) sits between lock and resolve so the flash is
-visible. Because the phase — not a timer callback — gates `update()`, gravity
+visible. Because the phase - not a timer callback - gates `update()`, gravity
 and input are naturally frozen during the animation. **Modelling the game as a
 state machine (`start → playing → clearing → playing → won | lost`, plus
 `paused`) is what keeps this from becoming a tangle of boolean flags.**
@@ -280,22 +280,22 @@ Plus 1 point per cell soft-dropped and 2 per cell hard-dropped. The structure
 is deliberately super-linear: four singles score 400, one Tetris scores 800.
 That's the entire risk/reward design of the game expressed in one array.
 
-- **Combo** — a counter incremented on every consecutive piece that clears at
+- **Combo** - a counter incremented on every consecutive piece that clears at
   least one line, reset to `-1` on a lock that clears nothing.
-- **Back-to-back** — consecutive Tetrises get a 1.5× bonus.
-- **Level** — `floor(lines / 10) + 1`, capped at the gravity table length.
+- **Back-to-back** - consecutive Tetrises get a 1.5× bonus.
+- **Level** - `floor(lines / 10) + 1`, capped at the gravity table length.
 
 ## 9. Rendering
 
 Three canvases: the board (300×600 at 30 px per cell), the hold preview, and the
-next queue. Every frame redraws from scratch — at 10×20 cells that's trivially
+next queue. Every frame redraws from scratch - at 10×20 cells that's trivially
 cheap and removes any possibility of stale pixels.
 
 Draw order matters: background → grid lines → settled blocks → **ghost** →
 active piece. The ghost is drawn at `globalAlpha = 0.22` so the real piece reads
 clearly on top of it.
 
-Each block is a flat fill plus a light top-left bevel and a dark bottom edge —
+Each block is a flat fill plus a light top-left bevel and a dark bottom edge -
 four `fillRect` calls that sell depth far more cheaply than gradients.
 
 ## 10. Input
@@ -316,7 +316,7 @@ the game mid-play. `hideOverlay()` calls `oBtn.blur()` to prevent that.
 ## 11. Game feel
 
 Mechanically the game was finished at section 7. Everything here is
-presentation — but it is most of what makes a Tetris feel good rather than
+presentation - but it is most of what makes a Tetris feel good rather than
 merely correct. All of it lives in a separate `fx` object so the rules stay
 readable:
 
@@ -329,7 +329,7 @@ const fx = { particles: [], popups: [], trails: [], flashes: [], shake: {...} };
 | **Screen shake** | Hard drop, line clear, level up, game over | Random offset written to the board wrapper's `transform`, decaying on `k²` so it snaps rather than wobbles. Magnitude scales with drop distance and lines cleared. |
 | **Particles** | Lock, clear, game over, win | Little squares with velocity, gravity and drag, coloured from the piece they came from. |
 | **Drop trail** | Hard drop | A vertical streak from where the piece was to where it landed, fading out along its length so it reads as motion. |
-| **Lock flash** | Every lock | A white overlay on the piece's cells for 130 ms — the "it landed" confirmation. |
+| **Lock flash** | Every lock | A white overlay on the piece's cells for 130 ms - the "it landed" confirmation. |
 | **Row collapse** | Line clear | Rows flash white, then scale and fade out over 300 ms before the splice. |
 | **Score popups** | Line clear, level up | `SINGLE`/`DOUBLE`/`TRIPLE`/`TETRIS` with the point value, combo and back-to-back, overshooting in and drifting upward. |
 | **Ghost pulse** | Always | The landing outline breathes gently so it never reads as a settled block. |
@@ -347,7 +347,7 @@ Two rules keep this from turning into a mess:
    the frame rate falls off a cliff.
 
 `prefers-reduced-motion` short-circuits shake, particles and trails at the
-source — `REDUCED_MOTION` is checked inside `shake()` and `burst()`, so there's
+source - `REDUCED_MOTION` is checked inside `shake()` and `burst()`, so there's
 no per-call-site branching to forget.
 
 ### Sound without asset files
@@ -365,13 +365,13 @@ function tone({ freq, type = 'square', dur = .08, vol = .14, slide = 0, delay = 
 }
 ```
 
-A line clear is an arpeggio (three notes for 1–3 lines, a five-note run plus a
+A line clear is an arpeggio (three notes for 1-3 lines, a five-note run plus a
 noise sweep for a Tetris); the drop is a descending square wave plus filtered
 white noise. Total cost: no network requests and no asset pipeline.
 
 Browsers won't let you create an `AudioContext` outside a user gesture, so
 `audioReady()` is called from the start button, the pad buttons and the first
-board touch — whichever comes first.
+board touch - whichever comes first.
 
 ## 12. Responsive design
 
@@ -399,8 +399,8 @@ Three consequences worth having:
 - **Rotation just works.** A `ResizeObserver` on the board wrapper plus
   `resize`/`orientationchange` re-runs `layout()`.
 
-Every size in the renderer is expressed as a multiple of `view.cell` — bevels,
-particle sizes, popup fonts, the countdown — so the whole thing scales as one.
+Every size in the renderer is expressed as a multiple of `view.cell` - bevels,
+particle sizes, popup fonts, the countdown - so the whole thing scales as one.
 
 ### The layouts
 
@@ -414,7 +414,7 @@ particle sizes, popup fonts, the countdown — so the whole thing scales as one.
 
 `--chrome` is the whole trick for phones: the board takes *whatever vertical
 space is left*, so the DROP button is never pushed below the fold. The
-`/ 2` is the 1:2 aspect ratio — solving for width from the available height.
+`/ 2` is the 1:2 aspect ratio - solving for width from the available height.
 
 The next-piece preview reads its own box and lays the queue out **vertically
 when the box is tall and horizontally when it's wide**, so the same canvas
@@ -434,7 +434,7 @@ a notification doesn't end your run.
 ## 13. The screen system
 
 Six `<section class="screen">` elements share the page; exactly one is visible.
-There's no router and no framework — just a map and a function:
+There's no router and no framework - just a map and a function:
 
 ```js
 const screens = {};
@@ -457,7 +457,7 @@ Three details that are easy to get wrong:
 
 - **Use the `hidden` attribute, not only a class**, so screen readers and
   sequential focus skip the inactive screens. But an author `display` beats the
-  UA's `[hidden] { display: none }` rule, and several components here set one —
+  UA's `[hidden] { display: none }` rule, and several components here set one -
   hence one global `[hidden] { display: none !important; }`. Without it the
   Continue button showed up with no save behind it.
 - **Lay out the board on entry.** A canvas inside a hidden screen measures
@@ -476,7 +476,7 @@ one never breaks an existing save:
 let settings = { ...DEFAULT_SETTINGS, ...readJSON(KEY_SETTINGS, {}) };
 ```
 
-Each is read at the point of use rather than copied into game state — flip
+Each is read at the point of use rather than copied into game state - flip
 *Ghost piece* and the next frame simply stops drawing it. `effects` combines
 with the OS preference in one place:
 
@@ -494,7 +494,7 @@ writeJSON(KEY_SAVE, { grid, piece, hold, holdUsed, bag, queue,
 ```
 
 The active piece serialises cleanly because it's a plain object holding a plain
-matrix — one more payoff from never storing class instances or functions in
+matrix - one more payoff from never storing class instances or functions in
 game state. The `goal` rides along too, so resuming a 100-line run after
 switching to 20 doesn't hand you an instant win.
 
@@ -510,13 +510,13 @@ and never leaves you debugging two unknowns at once:
    poke a few values into the array and confirm they appear where you expect.
 2. **Drop one hard-coded piece.** Add `{matrix, x, y}` and a `setInterval` that
    increments `y`. Draw it over the grid.
-3. **Write `collides()`.** Stop the piece at the floor. This is the keystone —
+3. **Write `collides()`.** Stop the piece at the floor. This is the keystone -
    everything after it is a use of this one function.
 4. **Move and lock.** Arrow keys change `x` if `collides()` says it's safe. On a
    failed downward move, write the piece into the grid and spawn a new one.
 5. **Clear lines.** `splice` + `unshift`. Your game is now technically complete.
 6. **Add rotation.** Plain matrix rotation first. Play it, hit a wall, and *then*
-   add the SRS kick tables — you'll understand what they're for.
+   add the SRS kick tables - you'll understand what they're for.
 7. **Swap `setInterval` for rAF + delta time.** Then add the level/gravity table.
 8. **Add feel.** Ghost piece, lock delay, hold, next queue, 7-bag. Each is
    independently small; together they're the difference between a demo and a
@@ -524,7 +524,7 @@ and never leaves you debugging two unknowns at once:
 9. **Add the shell.** Scoring, win/lose states, `localStorage` high score, pause,
    overlay, touch controls.
 10. **Add juice last.** Shake, particles, popups, sound. Do it only once the
-    game is correct — otherwise you will spend an afternoon debugging a
+    game is correct - otherwise you will spend an afternoon debugging a
     particle system while a collision bug sits untouched.
 11. **Wrap it in screens.** Boot, menu, settings, scores. This is the cheapest
     part of the whole build and the part that makes it feel finished.
@@ -559,13 +559,13 @@ and never leaves you debugging two unknowns at once:
 
 ## Ideas to extend it
 
-- **T-spin detection** — check that three of the four corners around a T's
+- **T-spin detection** - check that three of the four corners around a T's
   centre are occupied after a rotation that needed a kick. Score it above a
   Tetris.
-- **Two-player** — a second board plus garbage lines sent on multi-line clears.
-- **Marathon vs. sprint** — you already have the goal machinery; expose
+- **Two-player** - a second board plus garbage lines sent on multi-line clears.
+- **Marathon vs. sprint** - you already have the goal machinery; expose
   `WIN_LINES` and a timer as a mode selector.
-- **Replays** — the game is deterministic given a seed and an input log. Seed
+- **Replays** - the game is deterministic given a seed and an input log. Seed
   the shuffle, record `(frame, action)` pairs, and replay is nearly free.
-- **Music** — the same oscillator helpers that make the effects would carry a
+- **Music** - the same oscillator helpers that make the effects would carry a
   simple looping bassline that speeds up with the level.

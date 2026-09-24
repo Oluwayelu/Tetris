@@ -1,23 +1,23 @@
 /* ============================================================================
- * TETRIS — vanilla JavaScript
+ * TETRIS - vanilla JavaScript
  * ----------------------------------------------------------------------------
- *  1. Constants & piece data   — board size, SRS shapes, kick tables, speeds
- *  2. Storage                  — settings, high scores, saved game
+ *  1. Constants & piece data   - board size, SRS shapes, kick tables, speeds
+ *  2. Storage                  - settings, high scores, saved game
  *  3. DOM handles
- *  4. State                    — game state + a separate `fx` bag for juice
- *  5. Helpers                  — rotation, collision, 7-bag randomiser
- *  6. Mechanics                — spawn, move, rotate, lock, clear, score
- *  7. Juice                    — particles, popups, screen shake, sound
- *  8. Layout                   — resolution-independent canvas sizing
- *  9. Rendering                — board + hold/next previews
+ *  4. State                    - game state + a separate `fx` bag for juice
+ *  5. Helpers                  - rotation, collision, 7-bag randomiser
+ *  6. Mechanics                - spawn, move, rotate, lock, clear, score
+ *  7. Juice                    - particles, popups, screen shake, sound
+ *  8. Layout                   - resolution-independent canvas sizing
+ *  9. Rendering                - board + hold/next previews
  * 10. HUD
- * 11. Game loop                — requestAnimationFrame, delta-time gravity
- * 12. Input                    — keyboard (DAS/ARR), buttons, touch gestures
- * 13. Screens                  — boot, menu, help, scores, settings, game
+ * 11. Game loop                - requestAnimationFrame, delta-time gravity
+ * 12. Input                    - keyboard (DAS/ARR), buttons, touch gestures
+ * 13. Screens                  - boot, menu, help, scores, settings, game
  * 14. Boot
  *
  * Coordinates: x grows right, y grows DOWN. The board keeps 2 hidden rows at
- * the top for spawning and overflow; only rows 2–21 are painted.
+ * the top for spawning and overflow; only rows 2-21 are painted.
  * ==========================================================================*/
 
 'use strict';
@@ -115,7 +115,7 @@ const REDUCED_MOTION =
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
 /* ==========================================================================
- * 2. STORAGE — settings, high scores, saved game
+ * 2. STORAGE - settings, high scores, saved game
  * ========================================================================*/
 
 const KEY_BEST     = 'tetris.highscore.v1';
@@ -123,7 +123,7 @@ const KEY_SCORES   = 'tetris.scores.v1';
 const KEY_SETTINGS = 'tetris.settings.v1';
 const KEY_SAVE     = 'tetris.save.v1';
 
-/* localStorage throws in some private-browsing modes — never let that break play. */
+/* localStorage throws in some private-browsing modes - never let that break play. */
 function readJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -255,12 +255,13 @@ const fx = {
   particles: [],   // { x, y, vx, vy, life, max, size, color, rot, vrot }
   popups:    [],   // { text, sub, x, y, life, max, color }
   trails:    [],   // { cells, y0, y1, life, max, color }
-  flashes:   [],   // { cells, life, max }  — lock flash
+  flashes:   [],   // { cells, life, max }  - lock flash
   shake:     { t: 0, max: 0, mag: 0 },
 };
 
-/* Geometry filled in by layout(). */
-const view = { cell: 0, dpr: 1, w: 0, h: 0 };
+/* Geometry filled in by layout(). ox/oy centre the playfield inside the
+   canvas, so an oddly-shaped box letterboxes instead of stretching cells. */
+const view = { cell: 0, dpr: 1, w: 0, h: 0, ox: 0, oy: 0 };
 
 /* ==========================================================================
  * 5. HELPERS
@@ -328,7 +329,7 @@ function refillQueue() {
 
 const firstFilledRow = (m) => m.findIndex(row => row.some(Boolean));
 
-/** Height of the tallest column, in visible rows — drives the danger glow. */
+/** Height of the tallest column, in visible rows - drives the danger glow. */
 function stackHeight() {
   for (let y = HIDDEN_ROWS; y < ROWS; y++) {
     if (state.grid[y].some(Boolean)) return ROWS - y;
@@ -419,7 +420,7 @@ function isGrounded() {
   return !!p && collides(p.matrix, p.x, p.y + 1);
 }
 
-/** How far straight down the piece can travel — ghost and hard drop use this. */
+/** How far straight down the piece can travel - ghost and hard drop use this. */
 function dropDistance() {
   const p = state.piece;
   let d = 0;
@@ -691,7 +692,7 @@ function quitToMenu() {
 }
 
 /* ==========================================================================
- * 7. JUICE — particles, popups, shake, haptics, sound
+ * 7. JUICE - particles, popups, shake, haptics, sound
  * ========================================================================*/
 
 /** Screen shake is written straight onto the wrapper's transform each frame. */
@@ -791,7 +792,7 @@ function tone({ freq, type = 'square', dur = 0.08, vol = 0.14, slide = 0, delay 
   osc.start(t); osc.stop(t + dur + 0.02);
 }
 
-/** Filtered white noise — the percussive half of the drop/lock sounds. */
+/** Filtered white noise - the percussive half of the drop/lock sounds. */
 function noise({ dur = 0.09, vol = 0.1, freq = 1200, delay = 0 }) {
   if (!actx || !settings.sound) return;
   const t = actx.currentTime + delay;
@@ -841,7 +842,7 @@ const sfx = {
 };
 
 /* ==========================================================================
- * 8. LAYOUT — resolution-independent canvas sizing
+ * 8. LAYOUT - resolution-independent canvas sizing
  * ========================================================================*/
 
 /**
@@ -863,12 +864,18 @@ function sizeCanvas(canvas, ctx) {
 }
 
 function layout() {
-  // The game screen may be hidden (zero-sized) — nothing to lay out yet.
+  // The game screen may be hidden (zero-sized) - nothing to lay out yet.
   if (!boardCanvas.getBoundingClientRect().width) return;
 
   const b = sizeCanvas(boardCanvas, boardCtx);
   view.w = b.w; view.h = b.h; view.dpr = b.dpr;
-  view.cell = b.w / COLS;          // board is always exactly COLS cells wide
+
+  // Largest square cell that fits BOTH dimensions, then centre the field.
+  // CSS normally hands us a 1:2 box so these agree, but this keeps cells
+  // square even when a breakpoint squeezes the box.
+  view.cell = Math.min(b.w / COLS, b.h / VIS_ROWS);
+  view.ox = (b.w - view.cell * COLS) / 2;
+  view.oy = (b.h - view.cell * VIS_ROWS) / 2;
 
   sizeCanvas(holdCanvas, holdCtx);
   sizeCanvas(nextCanvas, nextCtx);
@@ -920,8 +927,9 @@ function drawGridLines(ctx, cell) {
   ctx.strokeStyle = 'rgba(80,110,170,.09)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let x = 1; x < COLS; x++) { ctx.moveTo(x * cell, 0); ctx.lineTo(x * cell, view.h); }
-  for (let y = 1; y < VIS_ROWS; y++) { ctx.moveTo(0, y * cell); ctx.lineTo(view.w, y * cell); }
+  const fw = cell * COLS, fh = cell * VIS_ROWS;
+  for (let x = 1; x < COLS; x++) { ctx.moveTo(x * cell, 0); ctx.lineTo(x * cell, fh); }
+  for (let y = 1; y < VIS_ROWS; y++) { ctx.moveTo(0, y * cell); ctx.lineTo(fw, y * cell); }
   ctx.stroke();
 }
 
@@ -931,12 +939,14 @@ function drawBoard() {
   if (!cell) return;
 
   ctx.clearRect(0, 0, view.w, view.h);
-
-  const g = ctx.createLinearGradient(0, 0, 0, view.h);
-  g.addColorStop(0, '#0b1224');
-  g.addColorStop(1, '#070c18');
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#080d1a';                 // letterbox, when there is one
   ctx.fillRect(0, 0, view.w, view.h);
+
+  // Everything below is drawn in playfield coordinates.
+  ctx.save();
+  ctx.translate(view.ox, view.oy);
+  ctx.fillStyle = '#0a1020';
+  ctx.fillRect(0, 0, cell * COLS, cell * VIS_ROWS);
   drawGridLines(ctx, cell);
 
   // ── Locked cells ──────────────────────────────────────────
@@ -1030,6 +1040,9 @@ function drawBoard() {
 
   drawParticles(ctx, cell);
   drawPopups(ctx, cell);
+  ctx.restore();
+
+  // Countdown sits on the canvas centre, outside the playfield transform.
   if (state.phase === 'countdown') drawCountdown(ctx);
 }
 
@@ -1518,7 +1531,7 @@ document.addEventListener('touchmove', (e) => {
 }, { passive: false });
 
 /* ==========================================================================
- * 13. SCREENS — boot · menu · help · scores · settings · game
+ * 13. SCREENS - boot · menu · help · scores · settings · game
  * ========================================================================*/
 
 const screens = {};
@@ -1545,7 +1558,7 @@ function showScreen(name) {
   if (name === 'settings') renderSettings();
   if (name === 'help')     el.helpGoal.textContent = settings.goal || '∞';
   // The board has no size while its screen is hidden. The screen is already
-  // un-hidden above, so a synchronous layout here measures correctly — and
+  // un-hidden above, so a synchronous layout here measures correctly - and
   // unlike rAF it still runs when the tab is hidden or throttled.
   if (name === 'game')     layout();
 }
@@ -1556,7 +1569,7 @@ function refreshMenu() {
   el.menuBest.textContent = best.toLocaleString();
   el.menuTag.textContent = settings.goal > 0
     ? `Clear ${settings.goal} lines to win.`
-    : 'Endless — play until you top out.';
+    : 'Endless - play until you top out.';
 
   const save = getSave();
   el.btnContinue.hidden = !save;
